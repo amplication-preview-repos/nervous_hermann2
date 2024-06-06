@@ -11,15 +11,28 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { StringFilter } from "../../util/StringFilter";
+import { DeliveryListRelationFilter } from "../../delivery/base/DeliveryListRelationFilter";
+import { ValidateNested, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
-import { IsOptional, ValidateNested } from "class-validator";
+import { StringFilter } from "../../util/StringFilter";
 import { DateTimeNullableFilter } from "../../util/DateTimeNullableFilter";
 import { FloatNullableFilter } from "../../util/FloatNullableFilter";
 import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
 
 @InputType()
 class OrderWhereInput {
+  @ApiProperty({
+    required: false,
+    type: () => DeliveryListRelationFilter,
+  })
+  @ValidateNested()
+  @Type(() => DeliveryListRelationFilter)
+  @IsOptional()
+  @Field(() => DeliveryListRelationFilter, {
+    nullable: true,
+  })
+  deliveries?: DeliveryListRelationFilter;
+
   @ApiProperty({
     required: false,
     type: StringFilter,

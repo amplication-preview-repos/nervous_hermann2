@@ -13,17 +13,17 @@ import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsDate,
-  ValidateNested,
-  IsOptional,
   IsString,
-  IsNumber,
+  IsOptional,
+  IsEnum,
+  ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { Delivery } from "../../delivery/base/Delivery";
-import { User } from "../../user/base/User";
+import { EnumDeliveryDeliveryStatus } from "./EnumDeliveryDeliveryStatus";
+import { Order } from "../../order/base/Order";
 
 @ObjectType()
-class Order {
+class Delivery {
   @ApiProperty({
     required: true,
   })
@@ -34,12 +34,36 @@ class Order {
 
   @ApiProperty({
     required: false,
-    type: () => [Delivery],
+    type: String,
   })
-  @ValidateNested()
-  @Type(() => Delivery)
+  @IsString()
   @IsOptional()
-  deliveries?: Array<Delivery>;
+  @Field(() => String, {
+    nullable: true,
+  })
+  deliveryAddress!: string | null;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  deliveryDate!: Date | null;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumDeliveryDeliveryStatus,
+  })
+  @IsEnum(EnumDeliveryDeliveryStatus)
+  @IsOptional()
+  @Field(() => EnumDeliveryDeliveryStatus, {
+    nullable: true,
+  })
+  deliveryStatus?: "Option1" | null;
 
   @ApiProperty({
     required: true,
@@ -51,25 +75,12 @@ class Order {
 
   @ApiProperty({
     required: false,
+    type: () => Order,
   })
-  @IsDate()
-  @Type(() => Date)
+  @ValidateNested()
+  @Type(() => Order)
   @IsOptional()
-  @Field(() => Date, {
-    nullable: true,
-  })
-  orderDate!: Date | null;
-
-  @ApiProperty({
-    required: false,
-    type: Number,
-  })
-  @IsNumber()
-  @IsOptional()
-  @Field(() => Number, {
-    nullable: true,
-  })
-  totalAmount!: number | null;
+  order?: Order | null;
 
   @ApiProperty({
     required: true,
@@ -78,15 +89,6 @@ class Order {
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
-
-  @ApiProperty({
-    required: false,
-    type: () => User,
-  })
-  @ValidateNested()
-  @Type(() => User)
-  @IsOptional()
-  user?: User | null;
 }
 
-export { Order as Order };
+export { Delivery as Delivery };

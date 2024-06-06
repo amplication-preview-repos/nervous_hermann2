@@ -11,24 +11,29 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { DeliveryUpdateManyWithoutOrdersInput } from "./DeliveryUpdateManyWithoutOrdersInput";
-import { ValidateNested, IsOptional, IsDate, IsNumber } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsDate,
+  IsEnum,
+  ValidateNested,
+} from "class-validator";
 import { Type } from "class-transformer";
-import { UserWhereUniqueInput } from "../../user/base/UserWhereUniqueInput";
+import { EnumDeliveryDeliveryStatus } from "./EnumDeliveryDeliveryStatus";
+import { OrderWhereUniqueInput } from "../../order/base/OrderWhereUniqueInput";
 
 @InputType()
-class OrderUpdateInput {
+class DeliveryCreateInput {
   @ApiProperty({
     required: false,
-    type: () => DeliveryUpdateManyWithoutOrdersInput,
+    type: String,
   })
-  @ValidateNested()
-  @Type(() => DeliveryUpdateManyWithoutOrdersInput)
+  @IsString()
   @IsOptional()
-  @Field(() => DeliveryUpdateManyWithoutOrdersInput, {
+  @Field(() => String, {
     nullable: true,
   })
-  deliveries?: DeliveryUpdateManyWithoutOrdersInput;
+  deliveryAddress?: string | null;
 
   @ApiProperty({
     required: false,
@@ -39,30 +44,30 @@ class OrderUpdateInput {
   @Field(() => Date, {
     nullable: true,
   })
-  orderDate?: Date | null;
+  deliveryDate?: Date | null;
 
   @ApiProperty({
     required: false,
-    type: Number,
+    enum: EnumDeliveryDeliveryStatus,
   })
-  @IsNumber()
+  @IsEnum(EnumDeliveryDeliveryStatus)
   @IsOptional()
-  @Field(() => Number, {
+  @Field(() => EnumDeliveryDeliveryStatus, {
     nullable: true,
   })
-  totalAmount?: number | null;
+  deliveryStatus?: "Option1" | null;
 
   @ApiProperty({
     required: false,
-    type: () => UserWhereUniqueInput,
+    type: () => OrderWhereUniqueInput,
   })
   @ValidateNested()
-  @Type(() => UserWhereUniqueInput)
+  @Type(() => OrderWhereUniqueInput)
   @IsOptional()
-  @Field(() => UserWhereUniqueInput, {
+  @Field(() => OrderWhereUniqueInput, {
     nullable: true,
   })
-  user?: UserWhereUniqueInput | null;
+  order?: OrderWhereUniqueInput | null;
 }
 
-export { OrderUpdateInput as OrderUpdateInput };
+export { DeliveryCreateInput as DeliveryCreateInput };

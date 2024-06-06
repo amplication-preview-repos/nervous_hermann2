@@ -26,6 +26,9 @@ import { Order } from "./Order";
 import { OrderFindManyArgs } from "./OrderFindManyArgs";
 import { OrderWhereUniqueInput } from "./OrderWhereUniqueInput";
 import { OrderUpdateInput } from "./OrderUpdateInput";
+import { DeliveryFindManyArgs } from "../../delivery/base/DeliveryFindManyArgs";
+import { Delivery } from "../../delivery/base/Delivery";
+import { DeliveryWhereUniqueInput } from "../../delivery/base/DeliveryWhereUniqueInput";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -234,5 +237,110 @@ export class OrderControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/deliveries")
+  @ApiNestedQuery(DeliveryFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Delivery",
+    action: "read",
+    possession: "any",
+  })
+  async findDeliveries(
+    @common.Req() request: Request,
+    @common.Param() params: OrderWhereUniqueInput
+  ): Promise<Delivery[]> {
+    const query = plainToClass(DeliveryFindManyArgs, request.query);
+    const results = await this.service.findDeliveries(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        deliveryAddress: true,
+        deliveryDate: true,
+        deliveryStatus: true,
+        id: true,
+
+        order: {
+          select: {
+            id: true,
+          },
+        },
+
+        updatedAt: true,
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/deliveries")
+  @nestAccessControl.UseRoles({
+    resource: "Order",
+    action: "update",
+    possession: "any",
+  })
+  async connectDeliveries(
+    @common.Param() params: OrderWhereUniqueInput,
+    @common.Body() body: DeliveryWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      deliveries: {
+        connect: body,
+      },
+    };
+    await this.service.updateOrder({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/deliveries")
+  @nestAccessControl.UseRoles({
+    resource: "Order",
+    action: "update",
+    possession: "any",
+  })
+  async updateDeliveries(
+    @common.Param() params: OrderWhereUniqueInput,
+    @common.Body() body: DeliveryWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      deliveries: {
+        set: body,
+      },
+    };
+    await this.service.updateOrder({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/deliveries")
+  @nestAccessControl.UseRoles({
+    resource: "Order",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectDeliveries(
+    @common.Param() params: OrderWhereUniqueInput,
+    @common.Body() body: DeliveryWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      deliveries: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateOrder({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

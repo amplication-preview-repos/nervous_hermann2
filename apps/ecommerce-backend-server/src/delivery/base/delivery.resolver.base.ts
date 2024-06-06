@@ -19,33 +19,31 @@ import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
 import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
-import { Order } from "./Order";
-import { OrderCountArgs } from "./OrderCountArgs";
-import { OrderFindManyArgs } from "./OrderFindManyArgs";
-import { OrderFindUniqueArgs } from "./OrderFindUniqueArgs";
-import { CreateOrderArgs } from "./CreateOrderArgs";
-import { UpdateOrderArgs } from "./UpdateOrderArgs";
-import { DeleteOrderArgs } from "./DeleteOrderArgs";
-import { DeliveryFindManyArgs } from "../../delivery/base/DeliveryFindManyArgs";
-import { Delivery } from "../../delivery/base/Delivery";
-import { User } from "../../user/base/User";
-import { OrderService } from "../order.service";
+import { Delivery } from "./Delivery";
+import { DeliveryCountArgs } from "./DeliveryCountArgs";
+import { DeliveryFindManyArgs } from "./DeliveryFindManyArgs";
+import { DeliveryFindUniqueArgs } from "./DeliveryFindUniqueArgs";
+import { CreateDeliveryArgs } from "./CreateDeliveryArgs";
+import { UpdateDeliveryArgs } from "./UpdateDeliveryArgs";
+import { DeleteDeliveryArgs } from "./DeleteDeliveryArgs";
+import { Order } from "../../order/base/Order";
+import { DeliveryService } from "../delivery.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
-@graphql.Resolver(() => Order)
-export class OrderResolverBase {
+@graphql.Resolver(() => Delivery)
+export class DeliveryResolverBase {
   constructor(
-    protected readonly service: OrderService,
+    protected readonly service: DeliveryService,
     protected readonly rolesBuilder: nestAccessControl.RolesBuilder
   ) {}
 
   @graphql.Query(() => MetaQueryPayload)
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "read",
     possession: "any",
   })
-  async _ordersMeta(
-    @graphql.Args() args: OrderCountArgs
+  async _deliveriesMeta(
+    @graphql.Args() args: DeliveryCountArgs
   ): Promise<MetaQueryPayload> {
     const result = await this.service.count(args);
     return {
@@ -54,27 +52,29 @@ export class OrderResolverBase {
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
-  @graphql.Query(() => [Order])
+  @graphql.Query(() => [Delivery])
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "read",
     possession: "any",
   })
-  async orders(@graphql.Args() args: OrderFindManyArgs): Promise<Order[]> {
-    return this.service.orders(args);
+  async deliveries(
+    @graphql.Args() args: DeliveryFindManyArgs
+  ): Promise<Delivery[]> {
+    return this.service.deliveries(args);
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
-  @graphql.Query(() => Order, { nullable: true })
+  @graphql.Query(() => Delivery, { nullable: true })
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "read",
     possession: "own",
   })
-  async order(
-    @graphql.Args() args: OrderFindUniqueArgs
-  ): Promise<Order | null> {
-    const result = await this.service.order(args);
+  async delivery(
+    @graphql.Args() args: DeliveryFindUniqueArgs
+  ): Promise<Delivery | null> {
+    const result = await this.service.delivery(args);
     if (result === null) {
       return null;
     }
@@ -82,21 +82,23 @@ export class OrderResolverBase {
   }
 
   @common.UseInterceptors(AclValidateRequestInterceptor)
-  @graphql.Mutation(() => Order)
+  @graphql.Mutation(() => Delivery)
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "create",
     possession: "any",
   })
-  async createOrder(@graphql.Args() args: CreateOrderArgs): Promise<Order> {
-    return await this.service.createOrder({
+  async createDelivery(
+    @graphql.Args() args: CreateDeliveryArgs
+  ): Promise<Delivery> {
+    return await this.service.createDelivery({
       ...args,
       data: {
         ...args.data,
 
-        user: args.data.user
+        order: args.data.order
           ? {
-              connect: args.data.user,
+              connect: args.data.order,
             }
           : undefined,
       },
@@ -104,24 +106,24 @@ export class OrderResolverBase {
   }
 
   @common.UseInterceptors(AclValidateRequestInterceptor)
-  @graphql.Mutation(() => Order)
+  @graphql.Mutation(() => Delivery)
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "update",
     possession: "any",
   })
-  async updateOrder(
-    @graphql.Args() args: UpdateOrderArgs
-  ): Promise<Order | null> {
+  async updateDelivery(
+    @graphql.Args() args: UpdateDeliveryArgs
+  ): Promise<Delivery | null> {
     try {
-      return await this.service.updateOrder({
+      return await this.service.updateDelivery({
         ...args,
         data: {
           ...args.data,
 
-          user: args.data.user
+          order: args.data.order
             ? {
-                connect: args.data.user,
+                connect: args.data.order,
               }
             : undefined,
         },
@@ -136,17 +138,17 @@ export class OrderResolverBase {
     }
   }
 
-  @graphql.Mutation(() => Order)
+  @graphql.Mutation(() => Delivery)
   @nestAccessControl.UseRoles({
-    resource: "Order",
+    resource: "Delivery",
     action: "delete",
     possession: "any",
   })
-  async deleteOrder(
-    @graphql.Args() args: DeleteOrderArgs
-  ): Promise<Order | null> {
+  async deleteDelivery(
+    @graphql.Args() args: DeleteDeliveryArgs
+  ): Promise<Delivery | null> {
     try {
-      return await this.service.deleteOrder(args);
+      return await this.service.deleteDelivery(args);
     } catch (error) {
       if (isRecordNotFoundError(error)) {
         throw new GraphQLError(
@@ -158,37 +160,17 @@ export class OrderResolverBase {
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
-  @graphql.ResolveField(() => [Delivery], { name: "deliveries" })
-  @nestAccessControl.UseRoles({
-    resource: "Delivery",
-    action: "read",
-    possession: "any",
-  })
-  async findDeliveries(
-    @graphql.Parent() parent: Order,
-    @graphql.Args() args: DeliveryFindManyArgs
-  ): Promise<Delivery[]> {
-    const results = await this.service.findDeliveries(parent.id, args);
-
-    if (!results) {
-      return [];
-    }
-
-    return results;
-  }
-
-  @common.UseInterceptors(AclFilterResponseInterceptor)
-  @graphql.ResolveField(() => User, {
+  @graphql.ResolveField(() => Order, {
     nullable: true,
-    name: "user",
+    name: "order",
   })
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Order",
     action: "read",
     possession: "any",
   })
-  async getUser(@graphql.Parent() parent: Order): Promise<User | null> {
-    const result = await this.service.getUser(parent.id);
+  async getOrder(@graphql.Parent() parent: Delivery): Promise<Order | null> {
+    const result = await this.service.getOrder(parent.id);
 
     if (!result) {
       return null;
